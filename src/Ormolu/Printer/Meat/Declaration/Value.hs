@@ -439,8 +439,13 @@ p_stmt' placer render = \case
   BodyStmt _ body _ _ -> located body render
   LetStmt _ binds -> do
     txt "let"
-    space
-    sitcc $ p_hsLocalBinds binds
+    getPrinterOpt poLetNewline >>= \case
+      True -> do
+        vlayout space newline
+        inci $ p_hsLocalBinds binds
+      False -> do
+        space
+        sitcc $ p_hsLocalBinds binds
   ParStmt {} ->
     -- 'ParStmt' should always be eliminated in 'gatherStmt' already, such
     -- that it never occurs in 'p_stmt''. Consequently, handling it here
@@ -1007,8 +1012,13 @@ p_let ::
   R ()
 p_let render localBinds e = sitcc $ do
   txt "let"
-  space
-  dontUseBraces $ sitcc (p_hsLocalBinds localBinds)
+  getPrinterOpt poLetNewline >>= \case
+    True -> do
+      vlayout space newline
+      dontUseBraces $ inci (p_hsLocalBinds localBinds)
+    False -> do
+      space
+      dontUseBraces $ sitcc (p_hsLocalBinds localBinds)
   vlayout space (newline >> txt " ")
   txt "in"
   space
