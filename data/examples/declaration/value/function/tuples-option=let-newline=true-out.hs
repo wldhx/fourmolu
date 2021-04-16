@@ -8,8 +8,10 @@ bar =
 handleStuff =
     ( let
         foo = foo
-       in foo
+       in
+        foo
     , let
         bar = bar
-       in bar
+       in
+        bar
     )

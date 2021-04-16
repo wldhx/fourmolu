@@ -2,8 +2,9 @@ newNames :: [(String, String)]
 newNames =
     let
         (*) = flip (,)
-     in [ "Control" * "Monad"
-    -- Foo
+     in
+        [ "Control" * "Monad"
+        -- Foo
 
-    -- Bar
+        -- Bar
         ]

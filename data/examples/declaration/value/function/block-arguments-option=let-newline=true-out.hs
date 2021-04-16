@@ -14,7 +14,8 @@ f5 =
         let
             a = 3
             b = a
-         in b
+         in
+            b
 
 f6 =
     foo

@@ -4,4 +4,5 @@ foo =
 
         y = 11
         z = 12
-     in x + y + z
+     in
+        x + y + z

@@ -3,14 +3,16 @@ foo x =
     let
         z = y
         y = x
-     in z + 100
+     in
+        z + 100
 
 bar :: Int -> Int
 bar x =
     let
         z = y
         y = x
-     in z
+     in
+        z
             + 100
 
 inlineComment :: Int -> Int
@@ -18,16 +20,19 @@ inlineComment =
     let
         {- join -} go = case () of
                     () -> undefined
-     in go
+     in
+        go
 
 implicitParams :: HasCallStack => Int
 implicitParams =
     let
         ?cs = ?callstack
-     in foo cs
+     in
+        foo cs
 
 sitting =
     foo $
         let
             x = 20
-         in x
+         in
+            x

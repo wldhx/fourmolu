@@ -17,4 +17,5 @@ trickyLet = do
     foo
     let
         x = 5
-     in bar x
+     in
+        bar x
