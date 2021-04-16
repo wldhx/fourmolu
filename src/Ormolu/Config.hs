@@ -128,6 +128,8 @@ data PrinterOpts f = PrinterOpts
     poCommaStyle :: f CommaStyle,
     -- | Whether to indent `where` blocks
     poIndentWheres :: f Bool,
+    -- | Python-style ifs.
+    poOneLevelIfs :: f Bool,
     -- | Leave space before opening record brace
     poRecordBraceSpace :: f Bool,
     -- | Trailing commas with parentheses on separate lines
@@ -153,7 +155,7 @@ instance Semigroup PrinterOptsPartial where
   (<>) = fillMissingPrinterOpts
 
 instance Monoid PrinterOptsPartial where
-  mempty = PrinterOpts Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing
+  mempty = PrinterOpts Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing
 
 -- | A version of 'PrinterOpts' without empty fields.
 type PrinterOptsTotal = PrinterOpts Identity
@@ -168,6 +170,7 @@ defaultPrinterOpts =
     { poIndentation = pure 4,
       poCommaStyle = pure Leading,
       poIndentWheres = pure False,
+      poOneLevelIfs = pure False,
       poRecordBraceSpace = pure False,
       poDiffFriendlyImportExport = pure True,
       poRespectful = pure True,
@@ -188,6 +191,7 @@ fillMissingPrinterOpts p1 p2 =
     { poIndentation = fillField poIndentation,
       poCommaStyle = fillField poCommaStyle,
       poIndentWheres = fillField poIndentWheres,
+      poOneLevelIfs = fillField poOneLevelIfs,
       poRecordBraceSpace = fillField poRecordBraceSpace,
       poDiffFriendlyImportExport = fillField poDiffFriendlyImportExport,
       poRespectful = fillField poRespectful,

@@ -976,17 +976,28 @@ p_if placer render if' then' else' = do
   txt "if"
   space
   located if' p_hsExpr
-  breakpoint
-  inci $ do
-    txt "then"
-    space
-    located then' $ \x ->
-      placeHanging (placer x) (render x)
-    breakpoint
-    txt "else"
-    space
-    located else' $ \x ->
-      placeHanging (placer x) (render x)
+  getPrinterOpt poOneLevelIfs >>= \case
+    True -> do
+      space
+      txt "then"
+      p_body then'
+      breakpoint
+      txt "else"
+      p_body else'
+      where
+        p_body body = placeHanging (placer $ unLoc body) $ located body render
+    False -> do
+      breakpoint
+      inci $ do
+        txt "then"
+        space
+        located then' $ \x ->
+          placeHanging (placer x) (render x)
+        breakpoint
+        txt "else"
+        space
+        located else' $ \x ->
+          placeHanging (placer x) (render x)
 
 p_let ::
   -- | Render
