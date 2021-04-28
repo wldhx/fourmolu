@@ -66,11 +66,8 @@ p_hsmodImport ImportDecl {..} = do
     space
     case ideclHiding of
       Nothing -> return ()
-      Just (hiding, _) ->
+      Just (hiding, L _ xs) -> do
         when hiding (txt "hiding")
-    case ideclHiding of
-      Nothing -> return ()
-      Just (_, L _ xs) -> do
         breakIfNotDiffFriendly
         parens' True $ do
           layout <- getLayout
