@@ -401,6 +401,22 @@ printerOptsParser = do
           "Number of spaces between top-level declarations"
             <> showDefaultValue poNewlinesBetweenDecls
       ]
+  poAddSpaceBetweenImportedTypeAndConstructor <-
+    (optional . option parseBoundedEnum . mconcat)
+      [ long "space-between-type-and-constructor",
+        metavar "BOOL",
+        help $
+          "Whether to add space between type and its constructor(s) in import"
+            <> showDefaultValue poAddSpaceBetweenImportedTypeAndConstructor
+      ]
+  poRecordConstructorsHanging <-
+    (optional . option parseBoundedEnum . mconcat)
+      [ long "record-constructors-hanging",
+        metavar "BOOL",
+        help $
+          "Give the programmer more choice on where to insert blank lines"
+            <> showDefaultValue poRecordConstructorsHanging
+      ]
   pure PrinterOpts {..}
 
 sourceTypeParser :: Parser (Maybe SourceType)

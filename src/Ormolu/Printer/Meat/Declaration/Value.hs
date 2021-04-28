@@ -623,6 +623,7 @@ p_hsExpr' s = \case
   HsLamCase _ mgroup ->
     p_lamcase exprPlacement p_hsExpr mgroup
   HsApp _ f x -> do
+    hanging <- getPrinterOpt poRecordConstructorsHanging
     let -- In order to format function applications with multiple parameters
         -- nicer, traverse the AST to gather the function and all the
         -- parameters together.
@@ -634,9 +635,13 @@ p_hsExpr' s = \case
         -- We need to handle the last argument specially if it is a
         -- hanging construct, so separate it from the rest.
         (initp, lastp) = (NE.init args, NE.last args)
+
         initSpan =
           combineSrcSpans' $
-            getLocA f :| [(srcLocSpan . srcSpanStart . getLocA) lastp]
+            getLocA f
+              :| if hanging
+                then map getLocA initp
+                else [(srcLocSpan . srcSpanStart . getLocA) lastp]
         -- Hang the last argument only if the initial arguments span one
         -- line.
         placement =
