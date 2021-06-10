@@ -31,6 +31,8 @@ import Ormolu.Printer.Combinators
 import Ormolu.Printer.Internal (askSourceType)
 import Ormolu.Utils
 
+{-# ANN module ("Hlint: ignore Use camelCase" :: String) #-}
+
 -- | Data and type family style.
 data FamilyStyle
   = -- | Declarations in type classes
