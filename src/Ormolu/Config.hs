@@ -126,7 +126,9 @@ data PrinterOpts f = PrinterOpts
     -- | Number of newlines between top-level decls
     poNewlinesBetweenDecls :: f Int,
     -- | Whether to add space between type and its constructor(s) in import
-    poAddSpaceBetweenImportedTypeAndConstructor :: f Bool
+    poAddSpaceBetweenImportedTypeAndConstructor :: f Bool,
+    -- | Hang record constructors or no
+    poRecordConstructorsHanging :: f Bool
   }
   deriving (Generic)
 
@@ -142,7 +144,7 @@ instance Semigroup PrinterOptsPartial where
   (<>) = fillMissingPrinterOpts
 
 instance Monoid PrinterOptsPartial where
-  mempty = PrinterOpts Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing
+  mempty = PrinterOpts Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing
 
 -- | A version of 'PrinterOpts' without empty fields.
 type PrinterOptsTotal = PrinterOpts Identity
@@ -164,7 +166,8 @@ defaultPrinterOpts =
       poRespectful = pure True,
       poHaddockStyle = pure HaddockMultiLine,
       poNewlinesBetweenDecls = pure 1,
-      poAddSpaceBetweenImportedTypeAndConstructor = pure True
+      poAddSpaceBetweenImportedTypeAndConstructor = pure True,
+      poRecordConstructorsHanging = pure False
     }
 
 -- | Fill the field values that are 'Nothing' in the first argument
@@ -187,7 +190,8 @@ fillMissingPrinterOpts p1 p2 =
       poRespectful = fillField poRespectful,
       poHaddockStyle = fillField poHaddockStyle,
       poNewlinesBetweenDecls = fillField poNewlinesBetweenDecls,
-      poAddSpaceBetweenImportedTypeAndConstructor = fillField poAddSpaceBetweenImportedTypeAndConstructor
+      poAddSpaceBetweenImportedTypeAndConstructor = fillField poAddSpaceBetweenImportedTypeAndConstructor,
+      poRecordConstructorsHanging = fillField poRecordConstructorsHanging
     }
   where
     fillField :: (forall g. PrinterOpts g -> g a) -> f a

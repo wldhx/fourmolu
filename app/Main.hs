@@ -307,6 +307,14 @@ printerOptsParser = do
           "Whether to add space between type and its constructor(s) in import"
             <> showDefaultValue poAddSpaceBetweenImportedTypeAndConstructor
       ]
+  poRecordConstructorsHanging <-
+    (optional . option parseBoundedEnum . mconcat)
+      [ long "record-constructors-handing",
+        metavar "BOOL",
+        help $
+          "Give the programmer more choice on where to insert blank lines"
+            <> showDefaultValue poRecordConstructorsHanging
+      ]
   pure PrinterOpts {..}
 
 ----------------------------------------------------------------------------

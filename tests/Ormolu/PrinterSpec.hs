@@ -31,7 +31,8 @@ spec = do
             poRespectful = pure False,
             poHaddockStyle = pure HaddockSingleLine,
             poNewlinesBetweenDecls = pure 1,
-            poAddSpaceBetweenImportedTypeAndConstructor = pure True
+            poAddSpaceBetweenImportedTypeAndConstructor = pure True,
+            poRecordConstructorsHanging = pure False
           }
   sequence_ $ uncurry checkExample <$> [(ormoluOpts, ""), (defaultPrinterOpts, "-four")] <*> es
 
