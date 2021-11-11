@@ -29,31 +29,42 @@ import Paths_fourmolu (version)
 import System.Directory (getCurrentDirectory)
 import System.Exit (ExitCode (..), exitWith)
 import System.IO (hPutStrLn, stderr)
+import Data.Maybe (fromJust)
+import TH
 
 -- | Entry point of the program.
 main :: IO ()
-main = withPrettyOrmoluExceptions $ do
-  opts@Opts {..} <- execParser optsParserInfo
-  let formatStdIn = do
-        cur <- getCurrentDirectory
-        cfg <- mkConfig cur opts
-        formatOne optMode cfg Nothing
-  case optInputFiles of
-    [] -> formatStdIn
-    ["-"] -> formatStdIn
-    [x] -> flip (formatOne optMode) (Just x) =<< mkConfig x opts
-    xs@(x : _) -> do
-      cfg <- mkConfig x opts
-      -- It is possible to get IOException, error's and 'OrmoluException's
-      -- from 'formatOne', so we just catch everything.
-      errs <-
-        lefts
-          <$> mapM
-            (try @SomeException . formatOne optMode cfg . Just)
-            (sort xs)
-      unless (null errs) $ do
-        mapM_ (hPutStrLn stderr . displayException) errs
-        exitWith (ExitFailure 102)
+main = do
+  let x = execParserPure defaultPrefs (info printerOptsParser mempty) ["--respectful", "false"]
+  --handleParseResult  x
+  let y = fromJust $ getParseResult x
+  print y
+  print $ fillMissingPrinterOpts y defaultPrinterOpts 
+  forM_ (toCLI <$> $$poBoolFieldNames) putStrLn 
+  --forM_ ($$poFieldTypes) putStrLn 
+
+-- main = withPrettyOrmoluExceptions $ do
+--   opts@Opts {..} <- execParser optsParserInfo
+--   let formatStdIn = do
+--         cur <- getCurrentDirectory
+--         cfg <- mkConfig cur opts
+--         formatOne optMode cfg Nothing
+--   case optInputFiles of
+--     [] -> formatStdIn
+--     ["-"] -> formatStdIn
+--     [x] -> flip (formatOne optMode) (Just x) =<< mkConfig x opts
+--     xs@(x : _) -> do
+--       cfg <- mkConfig x opts
+--       -- It is possible to get IOException, error's and 'OrmoluException's
+--       -- from 'formatOne', so we just catch everything.
+--       errs <-
+--         lefts
+--           <$> mapM
+--             (try @SomeException . formatOne optMode cfg . Just)
+--             (sort xs)
+--       unless (null errs) $ do
+--         mapM_ (hPutStrLn stderr . displayException) errs
+--         exitWith (ExitFailure 102)
 
 -- | Format a single input.
 formatOne ::
