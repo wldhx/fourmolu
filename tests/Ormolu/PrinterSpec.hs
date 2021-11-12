@@ -22,18 +22,7 @@ import Options.Applicative (execParserPure, defaultPrefs, info, getParseResult)
 
 spec :: Spec
 spec = do
-  let x = execParserPure defaultPrefs (info printerOptsParser mempty) ["--respectful", "false"]
-  --handleParseResult  x
-  let Just y = getParseResult x
-  runIO $ print y
-  runIO $ print $ fillMissingPrinterOpts y defaultPrinterOpts 
-  let mew = [ "--" <> toCLI n <> " " <> toCLIArgument v
-            | n <- $$poBoolFieldNames
-            , v <- [True, False] ]
-  runIO $ print mew
-
-  es <- runIO locateExamples
-  let ormoluOpts =
+  let myOpts =
         PrinterOpts
           { poIndentation = pure 2,
             poCommaStyle = pure Trailing,
@@ -45,7 +34,29 @@ spec = do
             poHaddockStyle = pure HaddockSingleLine,
             poNewlinesBetweenDecls = pure 1
           }
-  sequence_ $ uncurry checkExample <$> [(ormoluOpts, ""), (defaultPrinterOpts, "-four")] <*> es
+  let mew = flatten $ $deriveToStringPo myOpts
+        where flatten [] = []
+              flatten ((x,y):xys) = x:y:flatten xys
+  runIO $ print mew
+  let x = execParserPure defaultPrefs (info printerOptsParser mempty) mew
+  let Just y = getParseResult x
+  runIO $ print y
+  runIO $ print $ fillMissingPrinterOpts y defaultPrinterOpts 
+
+  -- es <- runIO locateExamples
+  -- let ormoluOpts =
+  --       PrinterOpts
+  --         { poIndentation = pure 2,
+  --           poCommaStyle = pure Trailing,
+  --           poIndentWheres = pure True,
+  --           poLetNewline = pure False,
+  --           poRecordBraceSpace = pure True,
+  --           poDiffFriendlyImportExport = pure False,
+  --           poRespectful = pure False,
+  --           poHaddockStyle = pure HaddockSingleLine,
+  --           poNewlinesBetweenDecls = pure 1
+  --         }
+  --sequence_ $ uncurry checkExample <$> [(ormoluOpts, ""), (defaultPrinterOpts, "-four")] <*> es
 
 -- | Check a single given example.
 checkExample :: PrinterOptsTotal -> String -> Path Rel File -> Spec
