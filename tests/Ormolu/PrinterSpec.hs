@@ -1,4 +1,5 @@
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 module Ormolu.PrinterSpec (spec) where
 
@@ -11,13 +12,26 @@ import qualified Data.Text as T
 import qualified Data.Text.IO as T
 import Ormolu
 import Ormolu.Config
+import Ormolu.CLI
+import Ormolu.CLI.TH
 import Path
 import Path.IO
 import qualified System.FilePath as F
 import Test.Hspec
+import Options.Applicative (execParserPure, defaultPrefs, info, getParseResult)
 
 spec :: Spec
 spec = do
+  let x = execParserPure defaultPrefs (info printerOptsParser mempty) ["--respectful", "false"]
+  --handleParseResult  x
+  let Just y = getParseResult x
+  runIO $ print y
+  runIO $ print $ fillMissingPrinterOpts y defaultPrinterOpts 
+  let mew = [ "--" <> toCLI n <> " " <> toCLIArgument v
+            | n <- $$poBoolFieldNames
+            , v <- [True, False] ]
+  runIO $ print mew
+
   es <- runIO locateExamples
   let ormoluOpts =
         PrinterOpts

@@ -69,6 +69,8 @@ library
     exposed-modules:
         Ormolu
         Ormolu.Config
+        Ormolu.CLI
+        Ormolu.CLI.TH
         Ormolu.Diff
         Ormolu.Exception
         Ormolu.Imports
@@ -109,6 +111,7 @@ library
         Ormolu.Processing.Postprocess
         Ormolu.Processing.Preprocess
         Ormolu.Utils
+    other-modules:    Paths_fourmolu
 
     hs-source-dirs:   src
     other-modules:
@@ -126,10 +129,14 @@ library
         exceptions >=0.6 && <0.11,
         filepath >=1.4.2.1 && <1.5,
         ghc-lib-parser >=8.10 && <8.11,
+        gitrev >=1.3 && <1.4,
+        optparse-applicative >=0.14 && <0.17,
         HsYAML >=0.2 && <0.3,
         HsYAML-aeson >=0.2 && <0.3,
         mtl >=2.0 && <3.0,
         syb >=0.7 && <0.8,
+        th-abstraction,
+        template-haskell,
         text >=0.2 && <1.3
 
     if flag(dev)
@@ -144,14 +151,12 @@ library
 executable fourmolu
     main-is:          Main.hs
     hs-source-dirs:   app
-    other-modules:    Paths_fourmolu
     default-language: Haskell2010
     build-depends:
         fourmolu -any,
         base >=4.12 && <5.0,
         directory >=1.3.3 && <1.4,
         ghc-lib-parser >=8.10 && <8.11,
-        gitrev >=1.3 && <1.4,
         optparse-applicative >=0.14 && <0.17,
         text >=0.2 && <1.3
 
@@ -182,6 +187,7 @@ test-suite tests
         fourmolu -any,
         path >=0.6 && <0.8,
         path-io >=1.4.2 && <2.0,
+        optparse-applicative >=0.14 && <0.17,
         text >=0.2 && <1.3
 
     if flag(dev)
