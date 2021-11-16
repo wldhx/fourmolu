@@ -19,6 +19,12 @@ import Path.IO
 import qualified System.FilePath as F
 import Test.Hspec
 import Options.Applicative (execParserPure, defaultPrefs, info, getParseResult)
+import Data.Maybe (isJust)
+
+f = $showDiffPoG 
+
+optionIndentation2 :: PrinterOptsTotal 
+optionIndentation2 = defaultPrinterOpts { poIndentation = pure 2 }
 
 spec :: Spec
 spec = do
@@ -42,9 +48,11 @@ spec = do
   let Just y = getParseResult x
   runIO $ print y
   runIO $ print $ fillMissingPrinterOpts y defaultPrinterOpts 
+  
+  runIO $ print $ filter (isJust . fst) $ zip (f optionIndentation2) $$poFieldNames 
 
-  es <- runIO locateExamples
-  sequence_ $ uncurry checkExample <$> [(myOpts, " " <> unwords myOptsStr)] <*> es
+  --es <- runIO locateExamples
+  --sequence_ $ uncurry checkExample <$> [(myOpts, " " <> unwords myOptsStr)] <*> es
   -- let ormoluOpts =
   --       PrinterOpts
   --         { poIndentation = pure 2,

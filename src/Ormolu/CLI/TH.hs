@@ -7,7 +7,7 @@ module Ormolu.CLI.TH where
 import "template-haskell" Language.Haskell.TH
 import Language.Haskell.TH.Datatype
 import Data.Functor.Identity (runIdentity)
-import Ormolu.Config (PrinterOpts(..), PrinterOptsTotal)
+import Ormolu.Config (PrinterOpts(..), PrinterOptsTotal, defaultPrinterOpts)
 import Ormolu.CLI (toCLI, toCLIArgument)
 
 poBoolFieldNames :: Q (TExp [String])
@@ -45,3 +45,46 @@ deriveToStringPoTotal = do
                , toCLIArgument $ runIdentity $x8 ]
     in zip names' vals
     |]
+    
+poFieldNames :: Q (TExp [String])
+poFieldNames = do
+  ConstructorInfo {constructorVariant=RecordConstructor names} <- reifyConstructor 'PrinterOpts
+  let names' = ("--" <>) . toCLI . nameBase <$> names
+  [|| names' ||]
+
+showDiffPoG :: Q Exp
+showDiffPoG = do
+  ConstructorInfo {constructorFields} <- reifyConstructor 'PrinterOpts
+
+  vars <- mapM (const $ newName "x") constructorFields
+  let xs_ = map varP vars
+  let xs = map varE vars
+
+  defaultVars <- mapM (const $ newName "dx") constructorFields
+  let ds_ = map varP defaultVars
+  let ds = map varE defaultVars
+          
+  compVars <- mapM (const $ newName "x_dx") constructorFields
+  let cs_ = map varP compVars
+  let cs = map varE compVars
+  
+  let v_cs = map
+        (\(c_, x, d) -> valD c_ (normalB [|
+          if $x /= $d
+            then Just . show . runIdentity $ $x
+            else mempty
+        |]) [])
+        (zip3 cs_ xs ds)
+        
+  let zzz = foldr
+        (\x y -> [| $x : $y |])
+        [| [] |]
+        cs
+
+  lamE [conP 'PrinterOpts xs_]
+       (letE
+         (valD
+           (conP 'PrinterOpts ds_) (normalB [|defaultPrinterOpts|]) []
+           : v_cs)
+         [| $zzz |])
+  
