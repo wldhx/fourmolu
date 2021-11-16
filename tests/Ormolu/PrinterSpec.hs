@@ -6,7 +6,7 @@ module Ormolu.PrinterSpec (spec) where
 import Control.Exception
 import Control.Monad
 import Control.Monad.IO.Class
-import Data.List (isSuffixOf)
+import Data.List (isSuffixOf, intersperse)
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.IO as T
@@ -34,16 +34,17 @@ spec = do
             poHaddockStyle = pure HaddockSingleLine,
             poNewlinesBetweenDecls = pure 1
           }
-  let mew = flatten $ $deriveToStringPo myOpts
+  let myOptsStr = flatten $ $deriveToStringPoTotal myOpts
         where flatten [] = []
               flatten ((x,y):xys) = x:y:flatten xys
-  runIO $ print mew
-  let x = execParserPure defaultPrefs (info printerOptsParser mempty) mew
+  runIO $ print myOptsStr
+  let x = execParserPure defaultPrefs (info printerOptsParser mempty) myOptsStr
   let Just y = getParseResult x
   runIO $ print y
   runIO $ print $ fillMissingPrinterOpts y defaultPrinterOpts 
 
-  -- es <- runIO locateExamples
+  es <- runIO locateExamples
+  sequence_ $ uncurry checkExample <$> [(myOpts, " " <> unwords myOptsStr)] <*> es
   -- let ormoluOpts =
   --       PrinterOpts
   --         { poIndentation = pure 2,
@@ -71,7 +72,7 @@ checkExample po suffix srcPath' = it (fromRelFile srcPath' ++ " works") . withNi
   formatted0 <- ormoluFile cfg (fromRelFile srcPath)
   -- 3. Check the output against expected output. Thus all tests should
   -- include two files: input and expected output.
-  -- T.writeFile (fromRelFile expectedOutputPath) formatted0
+  T.writeFile (fromRelFile expectedOutputPath) formatted0
   expected <- (liftIO . T.readFile . fromRelFile) expectedOutputPath
   shouldMatch False formatted0 expected
   -- 4. Check that running the formatter on the output produces the same

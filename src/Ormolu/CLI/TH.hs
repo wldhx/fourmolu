@@ -24,8 +24,8 @@ poBoolFieldNames = do
   [|| fieldNames ||]
   
 -- PrinterOptsTotal -> String
-deriveToStringPo :: Q Exp
-deriveToStringPo = do
+deriveToStringPoTotal :: Q Exp
+deriveToStringPoTotal = do
   ConstructorInfo {constructorVariant=RecordConstructor names} <- reifyConstructor 'PrinterOpts
   
   vars <- mapM (const $ newName "x") names
