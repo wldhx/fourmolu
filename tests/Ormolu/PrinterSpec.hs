@@ -26,6 +26,7 @@ bundles =
       PrinterOpts
         { poIndentation = pure 2,
           poCommaStyle = pure Trailing,
+          poImportExportCommaStyle = pure Trailing,
           poIndentWheres = pure True,
           poOneLevelIfs = pure False,
           poLetNewline = pure False,
@@ -38,13 +39,20 @@ bundles =
           poRecordConstructorsHanging = pure False
         }
     ),
-    ("fourmolu", defaultPrinterOpts)
+    ( "fourmolu", defaultPrinterOpts),
+    ( "ieopts",
+      defaultPrinterOpts
+        { poImportExportCommaStyle = pure Leading,
+          poDiffFriendlyImportExport = pure False
+        }
+    )
   ]
 
 singleOpts :: [PrinterOptsTotal]
 singleOpts =
   [ defaultPrinterOpts {poIndentation = pure 2},
     defaultPrinterOpts {poCommaStyle = pure Trailing},
+    defaultPrinterOpts {poImportExportCommaStyle = pure Leading},
     defaultPrinterOpts {poIndentWheres = pure True},
     defaultPrinterOpts {poOneLevelIfs = pure True},
     defaultPrinterOpts {poLetNewline = pure True},
@@ -101,6 +109,11 @@ locateExamples :: IO [Path Rel File]
 locateExamples =
   filter isInput . snd <$> listDirRecurRel examplesDir
 
+-- | Build list of examples for testing import export lists comma behaviour.
+locateIEExamples :: IO [Path Rel File]
+locateIEExamples = do
+  filter isIEInput . snd <$> listDirRecurRel examplesDir
+
 -- | Does given path look like input path (as opposed to expected output
 -- path)?
 isInput :: Path Rel File -> Bool
@@ -108,6 +121,13 @@ isInput path =
   let s = fromRelFile path
       (s', exts) = F.splitExtensions s
    in exts `elem` [".hs", ".hsig"] && not ("-out" `isSuffixOf` s')
+
+-- | Does the given path contain import export examples?
+isIEInput :: Path Rel File -> Bool
+isIEInput path =
+  let isImportPath = "import/" `isSuffixOf` fromRelDir (parent path)
+      isExportPath = "module-header/" `isSuffixOf` fromRelDir (parent path)
+   in isInput path && (isImportPath || isExportPath)
 
 -- | For given path of input file return expected name of output.
 deriveOutput :: String -> Path Rel File -> IO (Path Rel File)

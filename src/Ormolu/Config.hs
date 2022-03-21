@@ -126,6 +126,8 @@ data PrinterOpts f = PrinterOpts
     poIndentation :: f Int,
     -- | Whether to place commas at start or end of lines
     poCommaStyle :: f CommaStyle,
+    -- | Whether to place commas at start or end of import-export lines
+    poImportExportCommaStyle :: f CommaStyle,
     -- | Whether to indent `where` blocks
     poIndentWheres :: f Bool,
     -- | Python-style ifs.
@@ -161,7 +163,7 @@ instance Semigroup PrinterOptsPartial where
   (<>) = fillMissingPrinterOpts
 
 instance Monoid PrinterOptsPartial where
-  mempty = PrinterOpts Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing
+  mempty = PrinterOpts Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing
 
 -- | A version of 'PrinterOpts' without empty fields.
 type PrinterOptsTotal = PrinterOpts Identity
@@ -175,6 +177,7 @@ defaultPrinterOpts =
   PrinterOpts
     { poIndentation = pure 4,
       poCommaStyle = pure Leading,
+      poImportExportCommaStyle = pure Trailing,
       poIndentWheres = pure False,
       poOneLevelIfs = pure False,
       poLetNewline = pure False,
@@ -199,6 +202,7 @@ fillMissingPrinterOpts p1 p2 =
   PrinterOpts
     { poIndentation = fillField poIndentation,
       poCommaStyle = fillField poCommaStyle,
+      poImportExportCommaStyle = fillField poImportExportCommaStyle,
       poIndentWheres = fillField poIndentWheres,
       poOneLevelIfs = fillField poOneLevelIfs,
       poLetNewline = fillField poLetNewline,
