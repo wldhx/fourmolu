@@ -26,6 +26,7 @@ module Ormolu.Printer.Combinators
     inciIf,
     inciByFrac,
     inciHalf,
+    inci3,
     located,
     located',
     switchLayout,
@@ -66,6 +67,10 @@ module Ormolu.Printer.Combinators
     HaddockStyle (..),
     setSpanMark,
     getSpanMark,
+
+    -- ** Helpers for leading/trailing arrows
+    leadingArrowType,
+    trailingArrowType,
   )
 where
 
@@ -316,3 +321,24 @@ commaDel =
 -- | Print @=@. Do not use @'txt' "="@.
 equals :: R ()
 equals = interferingTxt "="
+
+----------------------------------------------------------------------------
+-- Arrow style
+
+-- | Ouput @space >> txt "::" >> x@ when we are printing with trailing arrows
+trailingArrowType :: R () -> R ()
+trailingArrowType x = do
+  isTrailingArrow <- not <$> getPrinterOpt poLeadingArrows
+  when isTrailingArrow $ do
+    space
+    txt "::"
+    x
+
+-- | Ouput @x >> txt "::" >> space@ when we are printing with leading arrows
+leadingArrowType :: R () ->  R ()
+leadingArrowType x = do
+  isLeadingArrow <- getPrinterOpt poLeadingArrows
+  when isLeadingArrow $ do
+    x
+    txt "::"
+    space

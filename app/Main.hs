@@ -426,6 +426,14 @@ printerOptsParser = do
           "Give the programmer more choice on where to insert blank lines"
             <> showDefaultValue poRecordConstructorsHanging
       ]
+  poLeadingArrows <-
+    (optional . option parseBoundedEnum . mconcat)
+      [ long "leading-arrows",
+        metavar "BOOL",
+        help $
+          "Whether to put arrows before or after types in type signatures"
+            <> showDefaultValue poLeadingArrows
+      ]
   pure PrinterOpts {..}
 
 sourceTypeParser :: Parser (Maybe SourceType)

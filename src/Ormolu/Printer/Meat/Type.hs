@@ -23,6 +23,8 @@ module Ormolu.Printer.Meat.Type
 where
 
 import Control.Monad
+import Data.Bool (bool)
+import Data.Data (Data)
 import Data.Foldable (for_)
 import GHC.Hs
 import GHC.Types.Basic hiding (isPromoted)
@@ -36,38 +38,81 @@ import Ormolu.Printer.Meat.Common
 import {-# SOURCE #-} Ormolu.Printer.Meat.Declaration.Value (p_hsSplice, p_stringLit)
 import Ormolu.Printer.Operators
 import Ormolu.Utils
+import Data.Functor (($>))
+import Ormolu.Printer.Internal (enterLayout)
+
+{-# ANN module ("Hlint: ignore Use camelCase" :: String) #-}
 
 {-# ANN module ("Hlint: ignore Use camelCase" :: String) #-}
 
 p_hsType :: HsType GhcPs -> R ()
-p_hsType t = p_hsType' (hasDocStrings t) PipeStyle t
+p_hsType = p_hsTypeAfter' AfterNothing
+
+-- | Like 'p_hsType' but indent properly following a forall
+p_hsTypeAfter' :: After -> HsType GhcPs -> R ()
+p_hsTypeAfter' after t = do
+  s <- bool PipeStyle CaretStyle <$> getPrinterOpt poLeadingArrows
+  layout <- getLayout
+  p_hsType' after (hasDocStrings t || layout == MultiLine) s t
 
 p_hsTypePostDoc :: HsType GhcPs -> R ()
-p_hsTypePostDoc t = p_hsType' (hasDocStrings t) CaretStyle t
+p_hsTypePostDoc t = p_hsType' AfterNothing (hasDocStrings t) CaretStyle t
 
 -- | How to render Haddocks associated with a type.
 data TypeDocStyle
   = PipeStyle
   | CaretStyle
 
-p_hsType' :: Bool -> TypeDocStyle -> HsType GhcPs -> R ()
-p_hsType' multilineArgs docStyle = \case
+-- | What precedes this type on the same line.
+-- Only used for leading arrows
+data After
+  = AfterForall
+  | AfterContext
+  | AfterArgument
+  | AfterNothing
+  deriving (Eq, Show)
+
+-- | Render an "After" infix
+p_after :: Bool -> After -> R ()
+p_after multilineArgs = \case
+  AfterNothing -> pure ()
+  AfterForall | multilineArgs -> txt " ." >> space
+  AfterForall -> txt "." >> space
+  AfterContext -> txt "=>" >> space
+  AfterArgument -> txt "->" >> space
+
+-- | like p_after but only when we're rendering leading arrows
+p_leadingAfter :: Bool -> After -> R ()
+p_leadingAfter multiline a = do
+  getPrinterOpt poLeadingArrows >>= \case
+    False -> pure ()
+    True -> p_after multiline a
+
+p_hsType' :: After -> Bool -> TypeDocStyle -> HsType GhcPs -> R ()
+p_hsType' after multilineArgs docStyle = (p_leadingAfter multilineArgs after >>) . \case
   HsForAllTy _ tele t -> do
-    case tele of
-      HsForAllInvis _ bndrs -> p_forallBndrs ForAllInvis p_hsTyVarBndr bndrs
-      HsForAllVis _ bndrs -> p_forallBndrs ForAllVis p_hsTyVarBndr bndrs
+    a <- case tele of
+      HsForAllInvis _ bndrs -> p_forallBndrs' ForAllInvis p_hsTyVarBndr bndrs
+      HsForAllVis _ bndrs -> p_forallBndrs' ForAllVis p_hsTyVarBndr bndrs
+    a' <- getPrinterOpt poLeadingArrows >>= \case
+      True | multilineArgs -> pure a
+      _ -> p_after False a $> AfterNothing
     interArgBreak
-    p_hsTypeR (unLoc t)
+    p_hsTypeR a' (unLoc t)
   HsQualTy _ qs' t -> do
     for_ qs' $ \qs -> do
-      located qs p_hsContext
-      space
-      txt "=>"
+      getPrinterOpt poLeadingArrows >>= \case
+        True -> do
+          bool id inci3 (after == AfterForall) $ located qs p_hsContext
+        False -> do
+          located qs p_hsContext
+          space
+          txt "=>"
       interArgBreak
     case unLoc t of
-      HsQualTy {} -> p_hsTypeR (unLoc t)
-      HsFunTy {} -> p_hsTypeR (unLoc t)
-      _ -> located t p_hsTypeR
+      HsQualTy {} -> p_hsTypeR AfterContext (unLoc t)
+      HsFunTy {} -> p_hsTypeR AfterContext (unLoc t)
+      _ -> located t (p_hsTypeR AfterContext)
   HsTyVar _ p n -> do
     case p of
       IsPromoted -> do
@@ -102,20 +147,27 @@ p_hsType' multilineArgs docStyle = \case
       txt "@"
       located kd p_hsType
   HsFunTy _ arrow x y@(L _ y') -> do
-    located x p_hsType
-    space
-    case arrow of
-      HsUnrestrictedArrow _ -> txt "->"
-      HsLinearArrow _ _ -> txt "%1 ->"
-      HsExplicitMult _ _ mult -> do
-        txt "%"
-        p_hsTypeR (unLoc mult)
+    getPrinterOpt poLeadingArrows >>= \case
+      True -> do
+        bool id inci3 (after == AfterForall) (located x p_hsType)
+      False -> do
+        located x p_hsType
         space
-        txt "->"
+        case arrow of
+          HsUnrestrictedArrow _ -> txt "->"
+          HsLinearArrow _ _ -> txt "%1 ->"
+          HsExplicitMult _ _ mult -> do
+            txt "%"
+            p_hsTypeR AfterNothing (unLoc mult) -- XXX
+            space
+            txt "->"
     interArgBreak
     case y' of
-      HsFunTy {} -> p_hsTypeR y'
-      _ -> located y p_hsTypeR
+      HsFunTy {} -> do
+        layout <- getLayout
+        -- Render the comments properly, but keep the existing layout
+        located y (enterLayout layout . p_hsTypeR AfterArgument)
+      _ -> located y (p_hsTypeR AfterArgument)
   HsListTy _ t ->
     located t (brackets N . p_hsType)
   HsTupleTy _ tsort xs ->
@@ -135,16 +187,16 @@ p_hsType' multilineArgs docStyle = \case
     parens N $ sitcc $ located t p_hsType
   HsIParamTy _ n t -> sitcc $ do
     located n atom
-    space
-    txt "::"
+    trailingArrowType (pure ())
     breakpoint
+    leadingArrowType (pure ())
     inci (located t p_hsType)
   HsStarTy _ _ -> txt "*"
   HsKindSig _ t k -> sitcc $ do
     located t p_hsType
-    space
-    txt "::"
+    trailingArrowType (pure ())
     breakpoint
+    leadingArrowType (pure ())
     inci (located k p_hsType)
   HsSpliceTy _ splice -> p_hsSplice splice
   HsDocTy _ t str ->
@@ -203,7 +255,7 @@ p_hsType' multilineArgs docStyle = \case
       if multilineArgs
         then newline
         else breakpoint
-    p_hsTypeR = p_hsType' multilineArgs docStyle
+    p_hsTypeR a = p_hsType' a multilineArgs docStyle
 
 -- | Return 'True' if at least one argument in 'HsType' has a doc string
 -- attached to it.
@@ -238,26 +290,31 @@ p_hsTyVarBndr = \case
     (if isInferred flag then braces N else id) $ p_rdrName x
   KindedTyVar _ flag l k -> (if isInferred flag then braces else parens) N . sitcc $ do
     located l atom
-    space
-    txt "::"
+    trailingArrowType (pure ())
     breakpoint
+    leadingArrowType (pure ())
     inci (located k p_hsType)
 
 data ForAllVisibility = ForAllInvis | ForAllVis
 
 -- | Render several @forall@-ed variables.
-p_forallBndrs :: ForAllVisibility -> (a -> R ()) -> [LocatedA a] -> R ()
-p_forallBndrs ForAllInvis _ [] = txt "forall."
-p_forallBndrs ForAllVis _ [] = txt "forall ->"
-p_forallBndrs vis p tyvars =
+p_forallBndrs :: Data a => ForAllVisibility -> (a -> R ()) -> [LocatedA a] -> R ()
+p_forallBndrs vis p tyvars = do
+  a <- p_forallBndrs' vis p tyvars
+  p_after False a
+
+p_forallBndrs' :: Data a => ForAllVisibility -> (a -> R ()) -> [LocatedA a] -> R After
+p_forallBndrs' ForAllInvis _ [] = txt "forall" $> AfterForall
+p_forallBndrs' ForAllVis _ [] = txt "forall" >> space $> AfterArgument
+p_forallBndrs' vis p tyvars = do
   switchLayout (getLocA <$> tyvars) $ do
     txt "forall"
     breakpoint
     inci $ do
       sitcc $ sep breakpoint (sitcc . located' p) tyvars
-      case vis of
-        ForAllInvis -> txt "."
-        ForAllVis -> space >> txt "->"
+  case vis of
+    ForAllInvis -> pure AfterForall
+    ForAllVis -> space $> AfterArgument
 
 p_conDeclFields :: [LConDeclField GhcPs] -> R ()
 p_conDeclFields xs =
@@ -275,8 +332,13 @@ p_conDeclField ConDeclField {..} = do
       cd_fld_names
   space
   txt "::"
-  breakpoint
-  sitcc . inci $ p_hsType (unLoc cd_fld_type)
+  getPrinterOpt poLeadingArrows >>= \case
+    True -> sitcc . inci $ do
+      space
+      p_hsType (unLoc cd_fld_type)
+    False -> do
+      breakpoint
+      sitcc . inci $ p_hsType (unLoc cd_fld_type)
   when (commaStyle == Leading) $
     mapM_ ((newline >>) . p_hsDocString Caret False) cd_fld_doc
 

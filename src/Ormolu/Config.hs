@@ -147,7 +147,9 @@ data PrinterOpts f = PrinterOpts
     -- | Whether to add space between type and its constructor(s) in import
     poAddSpaceBetweenImportedTypeAndConstructor :: f Bool,
     -- | Hang record constructors or no
-    poRecordConstructorsHanging :: f Bool
+    poRecordConstructorsHanging :: f Bool,
+    -- | Enable leading arrows in type signatures
+    poLeadingArrows :: f Bool
   }
   deriving (Generic)
 
@@ -163,7 +165,7 @@ instance Semigroup PrinterOptsPartial where
   (<>) = fillMissingPrinterOpts
 
 instance Monoid PrinterOptsPartial where
-  mempty = PrinterOpts Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing
+  mempty = PrinterOpts Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing
 
 -- | A version of 'PrinterOpts' without empty fields.
 type PrinterOptsTotal = PrinterOpts Identity
@@ -187,7 +189,8 @@ defaultPrinterOpts =
       poHaddockStyle = pure HaddockMultiLine,
       poNewlinesBetweenDecls = pure 1,
       poAddSpaceBetweenImportedTypeAndConstructor = pure True,
-      poRecordConstructorsHanging = pure False
+      poRecordConstructorsHanging = pure False,
+      poLeadingArrows = pure True
     }
 
 -- | Fill the field values that are 'Nothing' in the first argument
@@ -212,7 +215,8 @@ fillMissingPrinterOpts p1 p2 =
       poHaddockStyle = fillField poHaddockStyle,
       poNewlinesBetweenDecls = fillField poNewlinesBetweenDecls,
       poAddSpaceBetweenImportedTypeAndConstructor = fillField poAddSpaceBetweenImportedTypeAndConstructor,
-      poRecordConstructorsHanging = fillField poRecordConstructorsHanging
+      poRecordConstructorsHanging = fillField poRecordConstructorsHanging,
+      poLeadingArrows = fillField poLeadingArrows
     }
   where
     fillField :: (forall g. PrinterOpts g -> g a) -> f a
