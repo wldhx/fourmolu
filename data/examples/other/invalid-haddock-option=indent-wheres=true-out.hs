@@ -1,10 +1,10 @@
 test = undefined
     where
-        a ::
-            -- foo
-            Int ->
-            -- misplaced
+        a
+            :: -- foo
             Int
+            -- misplaced
+            -> Int
         a = undefined
 
 test = undefined

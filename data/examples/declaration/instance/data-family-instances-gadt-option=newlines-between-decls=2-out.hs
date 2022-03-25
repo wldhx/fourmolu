@@ -3,12 +3,12 @@
 
 
 data instance Bar Int a where
-    SameBar ::
-        Bar
+    SameBar
+        :: Bar
             Int
             Int
     CloseBar :: Bar Int Double
-    OtherBar ::
-        Bar
+    OtherBar
+        :: Bar
             Int
             a

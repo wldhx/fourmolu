@@ -18,11 +18,11 @@ class
         | m -> e s
     where
     -- | 'getState' returns state
-    getState ::
-        m s
+    getState
+        :: m s
 
 
     -- | 'putState' sets state
-    putState ::
-        s ->
-        m ()
+    putState
+        :: s
+        -> m ()

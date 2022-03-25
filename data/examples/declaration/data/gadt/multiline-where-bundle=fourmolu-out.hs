@@ -8,9 +8,9 @@ data
 
 data
     Foo ::
-        Type ->
-        Type ->
         Type
+        -> Type
+        -> Type
     where
     Foo :: Foo a b
 
@@ -22,9 +22,9 @@ data
 
 data
     Vec ::
-        Type ->
-        Type ->
         Type
+        -> Type
+        -> Type
     where
     Nil :: Vec a Ze
     Cons :: a -> Vec a n -> Vec a (Su n)

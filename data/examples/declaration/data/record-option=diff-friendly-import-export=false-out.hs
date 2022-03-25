@@ -9,15 +9,13 @@ data Foo = Foo
     , fooBar, fooBaz :: NonEmpty (Identity Bool)
     -- ^ BarBaz
     , fooGag
-      , fooGog ::
-        NonEmpty
-            ( Indentity
-                Bool
-            )
+      , fooGog :: NonEmpty
+                        ( Indentity
+                            Bool
+                        )
     -- ^ GagGog
     , fooFoo
-      , barBar ::
-        Int
+      , barBar :: Int
     -- ^ Huh!
     }
     deriving (Eq, Show)

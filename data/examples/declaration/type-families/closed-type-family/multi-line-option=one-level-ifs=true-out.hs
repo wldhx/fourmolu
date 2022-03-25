@@ -14,8 +14,8 @@ type family
     G a b c =
         (a, b)
 type family
-    F a ::
-        * -> *
+    F a
+        :: * -> *
     where
     F Int = Double
     F Bool =

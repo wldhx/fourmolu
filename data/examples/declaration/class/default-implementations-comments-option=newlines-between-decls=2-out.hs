@@ -9,14 +9,14 @@ class Baz a where
 
 
     -- | Bar baz
-    barbaz ::
-        a -> a
+    barbaz
+        :: a -> a
 
 
     -- | Baz bar
-    bazbar ::
-        a ->
-        a
+    bazbar
+        :: a
+        -> a
 
 
     -- First comment

@@ -2,5 +2,5 @@ foo = 5 :: Int
 
 
 bar =
-    5 ::
-        Int
+    5
+    :: Int

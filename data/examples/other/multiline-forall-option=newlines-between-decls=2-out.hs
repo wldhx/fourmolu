@@ -8,8 +8,8 @@
 
 data D
     = forall
-        ( f ::
-            * -> * -> *
+        ( f
+          :: * -> * -> *
         )
         (x :: *)
         (y :: *).
@@ -17,33 +17,33 @@ data D
 
 
 data G where
-    G ::
-        forall
-            ( f ::
-                * -> * -> *
+    G
+        :: forall
+            ( f
+              :: * -> * -> *
             )
             (x :: *)
-            (y :: *).
-        f x y ->
-        G
+            (y :: *)
+         . f x y
+        -> G
 
 
-f ::
-    forall
-        ( f ::
-            * -> * -> *
+f
+    :: forall
+        ( f
+          :: * -> * -> *
         )
         (x :: *)
-        (y :: *).
-    f x y ->
-    ()
+        (y :: *)
+     . f x y
+    -> ()
 f = const ()
 
 
 type family T f x y where
     forall
-        ( f ::
-            * -> * -> *
+        ( f
+          :: * -> * -> *
         )
         (x :: *)
         (y :: *).
@@ -53,8 +53,8 @@ type family T f x y where
 
 {-# RULES
 "r" forall
-    ( f ::
-        * -> * -> *
+    ( f
+        :: * -> * -> *
     )
     (x :: *)
     (y :: *).

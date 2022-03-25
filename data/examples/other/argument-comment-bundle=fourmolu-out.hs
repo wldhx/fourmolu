@@ -23,7 +23,7 @@ foo
 
 data Foo = Foo
     { unFoo :: x
-            -> x -- on
-            -- after
-            -> y
+                -> x -- on
+                -- after
+                -> y
     }

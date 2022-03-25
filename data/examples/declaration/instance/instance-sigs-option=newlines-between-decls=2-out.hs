@@ -7,10 +7,10 @@ instance Eq Int where
 
 
 instance Ord Int where
-    compare ::
-        Int ->
-        Int ->
-        Ordering
+    compare
+        :: Int
+        -> Int
+        -> Ordering
     compare
         _
         _ =

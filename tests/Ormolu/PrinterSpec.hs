@@ -36,7 +36,8 @@ bundles =
           poHaddockStyle = pure HaddockSingleLine,
           poNewlinesBetweenDecls = pure 1,
           poAddSpaceBetweenImportedTypeAndConstructor = pure False,
-          poRecordConstructorsHanging = pure False
+          poRecordConstructorsHanging = pure False,
+          poLeadingArrows = pure False
         }
     ),
     ( "fourmolu", defaultPrinterOpts),
@@ -62,7 +63,8 @@ singleOpts =
     defaultPrinterOpts {poHaddockStyle = pure HaddockSingleLine},
     defaultPrinterOpts {poNewlinesBetweenDecls = pure 2},
     defaultPrinterOpts {poAddSpaceBetweenImportedTypeAndConstructor = pure False},
-    defaultPrinterOpts {poRecordConstructorsHanging = pure True}
+    defaultPrinterOpts {poRecordConstructorsHanging = pure True},
+    defaultPrinterOpts {poLeadingArrows = pure False}
   ]
 
 getPoLabel :: PrinterOptsTotal -> String

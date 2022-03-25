@@ -11,16 +11,16 @@ bar = id
 
 baz :: Num a => a -> a
 baz = id
-{-# SPECIALIZE [~2] baz ::
-    Int ->
-    Int
+{-# SPECIALIZE [~2] baz
+    :: Int
+    -> Int
     #-}
 
 
 {-# SPECIALIZE fits13Bits :: Int -> Bool, Integer -> Bool #-}
-{-# SPECIALIZE fits13Bits ::
-    Int ->
-    Bool
+{-# SPECIALIZE fits13Bits
+    :: Int
+    -> Bool
     , Integer -> Bool
     #-}
 fits13Bits :: Integral a => a -> Bool
